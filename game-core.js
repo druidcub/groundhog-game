@@ -10,7 +10,7 @@
   function createGame(random=Math.random,npcCount=3,playerCount=1,mode='normal'){
     playerCount=Number(playerCount)===2?2:1;
     mode=playerCount===2&&mode==='coop'?'coop':'normal';
-    npcCount=mode==='coop'?2:Math.max(0,Math.min(3,Math.trunc(Number(npcCount)||0)));
+    npcCount=mode==='coop'?2:Math.max(0,Math.min(playerCount===2?2:3,Math.trunc(Number(npcCount)||0)));
     const specs=[p1,...(playerCount===2?[p2]:[]),...npcStarts.slice(0,npcCount).map(a=>({...a,human:false,team:'npcs',x:a.id==='green'&&playerCount===2?7:a.x}))];
     const actors=specs.map(a=>({...a,score:0,moves:0,bombsHit:0,rocksBroken:0,stunnedUntil:0,nextStepAt:1500,goal:null}));
     const cells=Array.from({length:100},()=>({dug:false,item:null,rockHits:0}));

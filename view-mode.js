@@ -17,11 +17,14 @@
     return {id,direction};
   }
   function endingRotation(state,a,faceToFace){
-    if(state.mode!=='coop'||!faceToFace)return 0;
+    if(!faceToFace)return 0;
     if(a.id==='player2')return Math.PI;
     // Blue is presented to player 1; red is presented to player 2.
-    if(state.winner==='npcs'&&a.id==='red')return Math.PI;
+    if(state.mode==='coop'&&state.winner==='npcs'&&a.id==='red')return Math.PI;
     return 0;
   }
-  const api={isMobileDevice,opposed,keyInput,endingRotation};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.GroundhogView=api;
+  function actorRotation(a,faceToFace){return a.id==='player2'&&faceToFace?Math.PI:0;}
+  function spriteDirection(a,faceToFace){return actorRotation(a,faceToFace)?({up:'down',down:'up',left:'right',right:'left'}[a.facing]):a.facing;}
+  function pickupRotation(actorId,faceToFace){return actorId==='player2'&&faceToFace?Math.PI:0;}
+  const api={isMobileDevice,opposed,keyInput,endingRotation,actorRotation,spriteDirection,pickupRotation};if(typeof module!=='undefined'&&module.exports)module.exports=api;else root.GroundhogView=api;
 })(typeof window!=='undefined'?window:globalThis);

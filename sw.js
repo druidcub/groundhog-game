@@ -1,5 +1,5 @@
 /* Bump VERSION whenever any cached runtime file changes. */
-const VERSION='pwa-v2';
+const VERSION='pwa-v3';
 const PREFIX='groundhog-game:'+self.registration.scope+':';
 const CACHE=PREFIX+VERSION;
 const FILES=[
@@ -8,6 +8,7 @@ const FILES=[
   "style.css",
   "game-core.js",
   "game.js",
+  "preferences.js",
   "ending.js",
   "view-mode.js",
   "pwa.js",

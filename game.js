@@ -15,7 +15,7 @@ const actor=id=>state.actors.find(a=>a.id===id),player=()=>actor('player');
 function stop(id){const c=controllers.get(id);if(!c)return;c.held=null;c.pointer=null;c.thumb.style.transform='translate(-50%,-50%)';c.joystick.classList.remove('active');for(const [p,s] of swipes)if(s.id===id)swipes.delete(p);}
 function stopAll(){for(const id of controllers.keys())stop(id);swipes.clear();}
 function blocked(id){const a=actor(id);return !a||state.finished||settings.open||clock<a.stunnedUntil;}
-function reset(){stopAll();state=Groundhog.createGame(Math.random,Number($('npc-count').value),Number($('player-count').value),$('game-mode').value);clock=0;lastFrame=null;burst=null;cameraY=null;ending=null;lastView=null;win.hidden=true;topResult.hidden=true;$('ending-banner').hidden=true;for(const c of controllers.values())c.lastMove=-Infinity;$('hud-top').hidden=state.playerCount!==2;document.body.classList.toggle('dual',state.playerCount===2);document.body.classList.toggle('opposed',faceToFace());$('device-note').textContent=mobileDevice?'已偵測為手機／平板：雙人時上方介面朝向對面玩家。':'已偵測為電腦：雙人正常／合作時兩邊介面均保持正向。';status('挖寶開始！');update();}
+function reset(){stopAll();syncSettings();saveSettings();state=Groundhog.createGame(Math.random,Number($('npc-count').value),Number($('player-count').value),$('game-mode').value);clock=0;lastFrame=null;burst=null;cameraY=null;ending=null;lastView=null;win.hidden=true;topResult.hidden=true;$('ending-banner').hidden=true;for(const c of controllers.values())c.lastMove=-Infinity;$('hud-top').hidden=state.playerCount!==2;document.body.classList.toggle('dual',state.playerCount===2);document.body.classList.toggle('opposed',faceToFace());$('device-note').textContent=mobileDevice?'已偵測為手機／平板：雙人時上方介面朝向對面玩家。':'已偵測為電腦：雙人正常／合作時兩邊介面均保持正向。';status('挖寶開始！');update();}
 function status(text){if(lastStatus!==text){$('status').textContent=text;lastStatus=text;}}
 function update(){
   $('total-coins').textContent=state.coinCount;$('dug').textContent=state.dug;$('mode').textContent=state.mode==='coop'?'雙人合作':state.playerCount===2?'雙人競賽':'單人競賽';
@@ -31,7 +31,7 @@ function update(){
   if(state.finished){stopAll();const humanWin=state.mode==='coop'?state.winner==='players':actor(state.winner).human;$('result-label').textContent=humanWin?'玩家獲勝':'本局結束';$('result-title').textContent=state.mode==='coop'?(humanWin?'玩家隊先拿到 9 枚！':'NPC 隊先拿到 9 枚！'):`${actor(state.winner).name}先拿到 5 枚！`;$('win-description').textContent=state.mode==='coop'?`玩家隊 ${Groundhog.teamScore(state,'players')} 枚 · NPC 隊 ${Groundhog.teamScore(state,'npcs')} 枚`:state.actors.map(a=>`${a.name} ${a.score} 枚`).join(' · ');win.classList.toggle('lost',!humanWin);if(!ending){ending={elapsed:0,initial:lastView?{...lastView}:null,winnerIds:GroundhogEnding.winners(state).map(a=>a.id)};$('ending-banner').textContent=state.mode==='coop'?(state.winner==='players'?'玩家隊獲勝！':'NPC 隊獲勝！'):`${actor(state.winner).name}獲勝！`;$('ending-banner').hidden=false;for(const id of ['result-label','result-title','win-description'])$(id+'-top').textContent=$(id).textContent;}}
 }
 function eventFeedback(result){
-  if(['coin','win','bomb','rock','rock-broken'].includes(result.type))burst={kind:result.type==='win'?'coin':result.type,x:result.x,y:result.y,at:clock};
+  if(['coin','win','bomb','rock','rock-broken'].includes(result.type))burst={kind:result.type==='win'?'coin':result.type,actorId:result.actorId,x:result.x,y:result.y,at:clock};
   if(result.type==='bomb'&&actor(result.actorId).human)stop(result.actorId);
   if(result.type==='coin'||result.type==='win')status(`${actor(result.actorId).name}找到金幣。`);
   update();
@@ -55,8 +55,10 @@ document.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey)e.preventDefault()
 document.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
 document.addEventListener('touchmove',e=>{if(e.touches.length>1||!e.target.closest('#settings'))e.preventDefault();},{passive:false});
 let normalNPCCount='3',coopSettings=false;
-function syncSettings(){const two=$('player-count').value==='2';$('mode-option').hidden=!two;if(!two)$('game-mode').value='normal';const coop=two&&$('game-mode').value==='coop';if(coop&&!coopSettings)normalNPCCount=$('npc-count').value;if(coop)$('npc-count').value='2';else if(coopSettings)$('npc-count').value=normalNPCCount;coopSettings=coop;$('npc-count').disabled=coop;$('config-note').textContent=coop?'合作模式固定左右各一隻 NPC。按「重新開始」套用。':'按「重新開始」套用設定。';}
-$('player-count').addEventListener('change',syncSettings);$('game-mode').addEventListener('change',syncSettings);
+function syncSettings(){const two=$('player-count').value==='2';$('mode-option').hidden=!two;if(!two)$('game-mode').value='normal';const third=$('npc-count').querySelector('[value="3"]');third.disabled=two;third.hidden=two;const coop=two&&$('game-mode').value==='coop';if(coop&&!coopSettings)normalNPCCount=$('npc-count').value;if(coop)$('npc-count').value='2';else if(coopSettings)$('npc-count').value=normalNPCCount;if(two&&Number($('npc-count').value)>2)$('npc-count').value='2';coopSettings=coop;$('npc-count').disabled=coop;$('config-note').textContent=coop?'合作模式固定左右各一隻 NPC。按「重新開始」套用。':'按「重新開始」套用設定。';}
+function saveSettings(){try{GroundhogPreferences.write(localStorage,{playerCount:$('player-count').value,mode:$('game-mode').value,npcCount:$('npc-count').value});}catch{}}
+function restoreSettings(){let saved;try{saved=GroundhogPreferences.read(localStorage);}catch{saved=GroundhogPreferences.normalize(null);}$('player-count').value=String(saved.playerCount);$('game-mode').value=saved.mode;$('npc-count').value=String(saved.npcCount);normalNPCCount=String(saved.npcCount);}
+for(const id of ['player-count','game-mode','npc-count'])$(id).addEventListener('change',()=>{syncSettings();saveSettings();});
 $('settings-open').addEventListener('click',()=>{stopAll();syncSettings();settings.showModal();});settings.addEventListener('close',stopAll);
 $('restart').addEventListener('click',()=>{settings.close();reset();});$('again').addEventListener('click',reset);$('again-top').addEventListener('click',reset);
 function ready(img){return img&&img.complete&&img.naturalWidth>0;}
@@ -87,20 +89,20 @@ function draw(realNow){
     const x=offsetX+(a.x+.5)*cellSize,y=(a.y+.5)*cellSize-cameraY;
     if(y+cellSize<0||y-cellSize>h)continue;
     const isWinner=ending&&ending.winnerIds.includes(a.id),motion=ending?GroundhogEnding.pose(isWinner,ending.elapsed,index*105,reducedMotion):{jump:0,scaleX:1,scaleY:1,angle:now<a.stunnedUntil?Math.sin(now/100)*.12:0};
-    const facingRotation=ending?GroundhogView.endingRotation(state,a,faceToFace()):0,jumpSign=facingRotation?-1:1;
+    const facingRotation=ending?GroundhogView.endingRotation(state,a,faceToFace()):GroundhogView.actorRotation(a,faceToFace()),jumpSign=facingRotation?-1:1;
     ctx.fillStyle=a.color+(isWinner?'bb':'66');ctx.beginPath();ctx.ellipse(x,y+jumpSign*cellSize*.29,cellSize*(.32-motion.jump*.25),cellSize*.09,0,0,Math.PI*2);ctx.fill();
     if(isWinner){ctx.strokeStyle='#f3d079';ctx.lineWidth=2;ctx.beginPath();ctx.ellipse(x,y+jumpSign*cellSize*.29,cellSize*.4,cellSize*.14,0,0,Math.PI*2);ctx.stroke();}
     ctx.save();ctx.translate(x,y-jumpSign*motion.jump*cellSize);ctx.rotate(facingRotation+motion.angle);ctx.scale(motion.scaleX,motion.scaleY);if(ending&&!isWinner)ctx.globalAlpha=.83;
-    const expression=images[`${a.sprite}-${isWinner?'happy':'sad'}`],sprite=ending&&ready(expression)?expression:images[`${a.sprite}-${a.facing}`];if(ready(sprite))ctx.drawImage(sprite,-cellSize*.47,-cellSize*.47,cellSize*.94,cellSize*.94);ctx.restore();
+    const expression=images[`${a.sprite}-${isWinner?'happy':'sad'}`],sprite=ending&&ready(expression)?expression:images[`${a.sprite}-${GroundhogView.spriteDirection(a,faceToFace())}`];if(ready(sprite))ctx.drawImage(sprite,-cellSize*.47,-cellSize*.47,cellSize*.94,cellSize*.94);ctx.restore();
     if(isWinner){ctx.fillStyle='#ffe493';ctx.font=`bold ${cellSize*.27}px sans-serif`;ctx.textAlign='center';ctx.fillText('★',x,y-jumpSign*(cellSize*.64+motion.jump*cellSize));}
-    if(!ending&&now<a.stunnedUntil){ctx.font=`bold ${cellSize*.32}px sans-serif`;ctx.textAlign='center';ctx.fillStyle='#ffe274';for(let i=0;i<3;i++){const angle=now/280+i*Math.PI*2/3;ctx.fillText('★',x+Math.cos(angle)*cellSize*.4,y-cellSize*.33+Math.sin(angle)*cellSize*.15);}}
+    if(!ending&&now<a.stunnedUntil){ctx.font=`bold ${cellSize*.32}px sans-serif`;ctx.textAlign='center';ctx.fillStyle='#ffe274';for(let i=0;i<3;i++){const angle=now/280+i*Math.PI*2/3;ctx.fillText('★',x+Math.cos(angle)*cellSize*.4,y-jumpSign*cellSize*.33+Math.sin(angle)*cellSize*.15);}}
   }
   if(ending&&!reducedMotion&&ending.elapsed<6500){ctx.save();const colors=['#f7d467','#c4e28c','#92cceb','#eaa3c6'];for(let i=0;i<28;i++){const t=(ending.elapsed/2700+i*.137)%1,x=((i*71.31)%w)+Math.sin(t*8+i)*12,y=t*(h+30)-30;ctx.globalAlpha=.65;ctx.fillStyle=colors[i%4];ctx.fillRect(x,y,4,7);}ctx.restore();}
   if(burst&&!ending){const age=now-burst.at;if(age<700){ctx.save();ctx.globalAlpha=1-age/700;const bx=offsetX+(burst.x+.5)*cellSize,by=(burst.y+.5)*cellSize-cameraY;
-    if(burst.kind==='coin'&&ready(images.coin)){const s=cellSize*.6;ctx.drawImage(images.coin,bx-s/2,by-s/2-age*cellSize/1800,s,s);ctx.fillStyle='#ffe88d';ctx.font=`bold ${cellSize*.35}px sans-serif`;ctx.textAlign='center';ctx.fillText('+1',bx,by-cellSize*.5-age*cellSize/1800);}
+    if(burst.kind==='coin'&&ready(images.coin)){const s=cellSize*.6;ctx.translate(bx,by);ctx.rotate(GroundhogView.pickupRotation(burst.actorId,faceToFace()));ctx.drawImage(images.coin,-s/2,-s/2-age*cellSize/1800,s,s);ctx.fillStyle='#ffe88d';ctx.font=`bold ${cellSize*.35}px sans-serif`;ctx.textAlign='center';ctx.fillText('+1',0,-cellSize*.5-age*cellSize/1800);}
     else if(burst.kind==='bomb'){ctx.strokeStyle='#ffce8d';ctx.lineWidth=3;ctx.beginPath();ctx.arc(bx,by,cellSize*(.2+age/650),0,Math.PI*2);ctx.stroke();}
     else if(burst.kind==='rock-broken'&&ready(images['rock-4']))ctx.drawImage(images['rock-4'],bx-cellSize*.45,by-cellSize*.45,cellSize*.9,cellSize*.9);
     ctx.restore();}else burst=null;}
   requestAnimationFrame(draw);
 }
-syncSettings();reset();requestAnimationFrame(draw);
+restoreSettings();syncSettings();reset();requestAnimationFrame(draw);
