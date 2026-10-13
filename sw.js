@@ -1,5 +1,5 @@
 /* Bump VERSION whenever any cached runtime file changes. */
-const VERSION='pwa-v1';
+const VERSION='pwa-v2';
 const PREFIX='groundhog-game:'+self.registration.scope+':';
 const CACHE=PREFIX+VERSION;
 const FILES=[
@@ -57,7 +57,7 @@ const FILES=[
   "icons/maskable-512.png"
 ];
 const absolute=path=>new URL(path,self.registration.scope).href;
-self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES.map(absolute))));});
+self.addEventListener('install',event=>{event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(FILES.map(file=>new Request(absolute(file),{cache:'reload'})))));});
 self.addEventListener('activate',event=>{event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key.startsWith(PREFIX)&&key!==CACHE).map(key=>caches.delete(key)));await self.clients.claim();})());});
 self.addEventListener('message',event=>{if(event.data?.type==='SKIP_WAITING')self.skipWaiting();});
 self.addEventListener('fetch',event=>{
