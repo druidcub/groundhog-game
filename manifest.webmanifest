@@ -1,0 +1,20 @@
+{
+  "id": "./",
+  "name": "土撥鼠挖寶 · Groundhog Game",
+  "short_name": "土撥鼠挖寶",
+  "description": "親子同桌玩的挖寶遊戲，支援單人、雙人競賽與合作，首次載入後可離線遊玩。",
+  "lang": "zh-Hant",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#36271e",
+  "theme_color": "#36271e",
+  "prefer_related_applications": false,
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {"src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icons/maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"}
+  ]
+}

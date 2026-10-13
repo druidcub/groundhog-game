@@ -83,3 +83,17 @@ node tests.cjs
 ## GitHub Pages
 
 以 `main` 分支根目錄發布；`.nojekyll` 讓 GitHub Pages 直接提供靜態檔案。程式與圖片皆使用相對路徑，適用於 `/groundhog-game/` 專案網址。
+
+
+## PWA 安裝與離線遊玩
+
+首次連線開啟線上遊戲後，會快取遊戲程式、所有角色圖像與圖示。設定中顯示「離線遊玩已就緒」後，可以離線重新開啟遊戲。離線功能不保存目前對局，重新開啟會開始新遊戲。
+
+- Chrome／Edge 等支援的瀏覽器：使用瀏覽器的安裝選項；可用時，設定也會顯示「安裝到裝置」。
+- iPhone／iPad：使用 Safari 分享選單的「加入主畫面」。
+- 新版離線檔案準備好後，設定會顯示「更新並重新開啟」；按下會重新載入並開始新局，不會在對局中自動重開。
+- PWA 安裝與 service worker 需要 HTTPS 或 localhost，直接開啟本機 HTML 仍能玩，但不會安裝 service worker。
+
+`manifest.webmanifest` 使用相對的起始路徑及範圍，適用於 GitHub Pages 的 `/groundhog-game/`；`sw.js` 只管理本遊戲範圍的快取。修改任何快取的程式或素材時，須遞增 `sw.js` 中的 `VERSION`。
+
+App 圖示由既有 ImageGen 土撥鼠素材縮放與加上深色背景製作；含 192／512 px 一般圖示、512 px maskable 圖示、Apple touch icon 及 favicon。
