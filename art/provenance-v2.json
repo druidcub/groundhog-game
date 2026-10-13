@@ -1,0 +1,40 @@
+[
+  {
+    "atlas": "directions-atlas.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "art_source": "host_image",
+    "route": "built-in image_gen",
+    "transparent_background": true,
+    "model": "not returned by tool",
+    "estimateUsd": null,
+    "processing": "equal quadrants, preserved native alpha, uniform resize to 128x128",
+    "assets": [
+      "groundhog-up",
+      "groundhog-down",
+      "groundhog-left",
+      "groundhog-right"
+    ]
+  },
+  {
+    "atlas": "rocks-atlas.png",
+    "source_size": [
+      1254,
+      1254
+    ],
+    "art_source": "host_image",
+    "route": "built-in image_gen",
+    "transparent_background": true,
+    "model": "not returned by tool",
+    "estimateUsd": null,
+    "processing": "equal quadrants, preserved native alpha, uniform resize to 128x128",
+    "assets": [
+      "rock-1",
+      "rock-2",
+      "rock-3",
+      "rock-4"
+    ]
+  }
+]

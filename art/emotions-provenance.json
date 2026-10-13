@@ -1,0 +1,17 @@
+{
+  "art_source": "host_image",
+  "route": "built-in image_gen",
+  "source_size": [
+    793,
+    1983
+  ],
+  "grid": [
+    2,
+    5
+  ],
+  "native_alpha": true,
+  "processing": "equal-cell crop and uniform Lanczos resize to 128x128",
+  "motion": "runtime canvas transforms of generated static expression poses: jump, squash/stretch, shadow, slow defeated sway; no generated video or frame animation claimed",
+  "model": "not returned by tool",
+  "estimateUsd": null
+}

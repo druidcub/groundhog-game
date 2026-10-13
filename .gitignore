@@ -1,0 +1,15 @@
+# Local verification and map-authoring artifacts; neither is needed at runtime.
+/qa/
+/map/
+/work/
+/node_modules/
+/.forge/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+desktop.ini
+__pycache__/
+*.pyc

@@ -1,0 +1,35 @@
+{
+  "art_source": "host_image",
+  "route": "built-in image_gen",
+  "source_size": [
+    1254,
+    1254
+  ],
+  "model": "not returned by tool",
+  "estimateUsd": null,
+  "processing": "quadrant crop, magenta key for actor and coin, Lanczos resize",
+  "camera": "top-down",
+  "world_size": [
+    600,
+    600
+  ],
+  "grid": [
+    10,
+    10
+  ],
+  "tile_size": 60,
+  "actor_display_size": [
+    56,
+    56
+  ],
+  "origin": "top-left",
+  "render_order": [
+    "soil or dug floor",
+    "actor shadow",
+    "actor",
+    "stun stars",
+    "pickup or explosion effect",
+    "UI"
+  ],
+  "interaction": "all soil diggable; no permanent obstacles"
+}
