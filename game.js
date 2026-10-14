@@ -7,7 +7,7 @@ const faceToFace=()=>GroundhogView.opposed(state,mobileDevice);
 const reducedMotion=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const topResult=$('result-top');topResult.innerHTML=win.innerHTML;for(const el of topResult.querySelectorAll('[id]'))el.id+='-top';
 const controllers=new Map(),swipes=new Map(),images={};
-for(const name of ['soil','floor','coin','groundhog-up','groundhog-down','groundhog-left','groundhog-right','rock-1','rock-2','rock-3','rock-4']){const img=new Image();img.src=`assets/${name}.png`;images[name]=img;}
+for(const name of ['soil','floor','coin','bomb','groundhog-up','groundhog-down','groundhog-left','groundhog-right','rock-1','rock-2','rock-3','rock-4']){const img=new Image();img.src=`assets/${name}.png`;images[name]=img;}
 for(const color of ['blue','red','green','purple'])for(const direction of ['up','down','left','right']){const img=new Image();img.src=`assets/${color}-${direction}.png`;images[`${color}-${direction}`]=img;}
 for(const color of ['groundhog','blue','red','green','purple'])for(const expression of ['happy','sad']){const img=new Image();img.src=`assets/${color}-${expression}.png`;images[`${color}-${expression}`]=img;}
 for(const hud of document.querySelectorAll('.hud'))controllers.set(hud.dataset.actor,{id:hud.dataset.actor,hud,joystick:hud.querySelector('.joystick'),thumb:hud.querySelector('.joy-thumb'),pointer:null,held:null,lastMove:-Infinity});
@@ -31,7 +31,8 @@ function update(){
   if(state.finished){stopAll();const humanWin=state.mode==='coop'?state.winner==='players':actor(state.winner).human;$('result-label').textContent=humanWin?'玩家獲勝':'本局結束';$('result-title').textContent=state.mode==='coop'?(humanWin?'玩家隊先拿到 9 枚！':'NPC 隊先拿到 9 枚！'):`${actor(state.winner).name}先拿到 5 枚！`;$('win-description').textContent=state.mode==='coop'?`玩家隊 ${Groundhog.teamScore(state,'players')} 枚 · NPC 隊 ${Groundhog.teamScore(state,'npcs')} 枚`:state.actors.map(a=>`${a.name} ${a.score} 枚`).join(' · ');win.classList.toggle('lost',!humanWin);if(!ending){ending={elapsed:0,initial:lastView?{...lastView}:null,winnerIds:GroundhogEnding.winners(state).map(a=>a.id)};$('ending-banner').textContent=state.mode==='coop'?(state.winner==='players'?'玩家隊獲勝！':'NPC 隊獲勝！'):`${actor(state.winner).name}獲勝！`;$('ending-banner').hidden=false;for(const id of ['result-label','result-title','win-description'])$(id+'-top').textContent=$(id).textContent;}}
 }
 function eventFeedback(result){
-  if(['coin','win','bomb','rock','rock-broken'].includes(result.type))burst={kind:result.type==='win'?'coin':result.type,actorId:result.actorId,x:result.x,y:result.y,at:clock};
+  if(['reveal','coin','win','bomb','rock','rock-broken'].includes(result.type))burst={kind:result.type==='win'?'coin':result.type,actorId:result.actorId,x:result.x,y:result.y,at:clock};
+  if(result.type==='reveal')status(`${actor(result.actorId).name}挖開了土地，再移動才會進入。`);
   if(result.type==='bomb'&&actor(result.actorId).human)stop(result.actorId);
   if(result.type==='coin'||result.type==='win')status(`${actor(result.actorId).name}找到金幣。`);
   update();
@@ -81,8 +82,16 @@ function draw(realNow){
   if(ending){const view=GroundhogEnding.camera(state,w,h,ending.elapsed,ending.initial,reducedMotion);cellSize=view.cellSize;offsetX=view.offsetX;cameraY=-view.offsetY;lastView=view;}else lastView={cellSize,offsetX,offsetY:-cameraY};
   ctx.fillStyle='#4b3021';ctx.fillRect(0,0,w,h);
   if(ready(images.floor)){ctx.globalAlpha=.55;const pattern=ctx.createPattern(images.floor,'repeat');ctx.fillStyle=pattern;ctx.fillRect(0,0,w,h);ctx.globalAlpha=1;}
-  state.cells.forEach((cell,i)=>{const x=offsetX+(i%10)*cellSize,y=Math.floor(i/10)*cellSize-cameraY;if(y+cellSize<0||y>h)return;const img=images[cell.dug?'floor':'soil'];ctx.fillStyle=cell.dug?'#60412e':'#b8804c';ctx.fillRect(x,y,cellSize,cellSize);if(ready(img))ctx.drawImage(img,x,y,cellSize+.4,cellSize+.4);ctx.strokeStyle=cell.dug?'#51372444':'#714a3344';ctx.lineWidth=1;ctx.strokeRect(x+.5,y+.5,cellSize-1,cellSize-1);
-    if(cell.item==='rock'&&cell.rockHits>0){ctx.fillStyle='#5c423144';ctx.fillRect(x,y,cellSize,cellSize);const rock=images[`rock-${cell.rockHits}`];if(ready(rock)){ctx.save();if(burst&&burst.kind==='rock'&&burst.x===i%10&&burst.y===Math.floor(i/10)&&now-burst.at<180)ctx.translate(Math.sin((now-burst.at)/15)*cellSize*.035,0);ctx.drawImage(rock,x+cellSize*.05,y+cellSize*.05,cellSize*.9,cellSize*.9);ctx.restore();}}
+  state.cells.forEach((cell,i)=>{
+    const x=offsetX+(i%10)*cellSize,y=Math.floor(i/10)*cellSize-cameraY;if(y+cellSize<0||y>h)return;
+    ctx.save();ctx.translate(x+cellSize/2,y+cellSize/2);ctx.rotate(cell.dug?GroundhogView.pickupRotation(cell.revealedBy,faceToFace()):0);
+    const img=images[cell.dug?'floor':'soil'];ctx.fillStyle=cell.dug?'#60412e':'#b8804c';ctx.fillRect(-cellSize/2,-cellSize/2,cellSize,cellSize);if(ready(img))ctx.drawImage(img,-cellSize/2,-cellSize/2,cellSize+.4,cellSize+.4);
+    ctx.strokeStyle=cell.dug?'#51372444':'#714a3344';ctx.lineWidth=1;ctx.strokeRect(-cellSize/2+.5,-cellSize/2+.5,cellSize-1,cellSize-1);
+    if(cell.dug&&cell.item){
+      const item=images[cell.item==='rock'?`rock-${Math.max(1,cell.rockHits)}`:cell.item];
+      if(ready(item)){if(burst&&burst.kind==='rock'&&burst.x===i%10&&burst.y===Math.floor(i/10)&&now-burst.at<180)ctx.translate(Math.sin((now-burst.at)/15)*cellSize*.035,0);const size=cellSize*(cell.item==='rock'?.9:.78);ctx.drawImage(item,-size/2,-size/2,size,size);}
+    }
+    ctx.restore();
   });
   if(ending){ctx.fillStyle='#1f160d26';ctx.fillRect(0,0,w,h);}
   for(const [index,a] of state.actors.entries()){
@@ -100,6 +109,7 @@ function draw(realNow){
   if(ending&&!reducedMotion&&ending.elapsed<6500){ctx.save();const colors=['#f7d467','#c4e28c','#92cceb','#eaa3c6'];for(let i=0;i<28;i++){const t=(ending.elapsed/2700+i*.137)%1,x=((i*71.31)%w)+Math.sin(t*8+i)*12,y=t*(h+30)-30;ctx.globalAlpha=.65;ctx.fillStyle=colors[i%4];ctx.fillRect(x,y,4,7);}ctx.restore();}
   if(burst&&!ending){const age=now-burst.at;if(age<700){ctx.save();ctx.globalAlpha=1-age/700;const bx=offsetX+(burst.x+.5)*cellSize,by=(burst.y+.5)*cellSize-cameraY;
     if(burst.kind==='coin'&&ready(images.coin)){const s=cellSize*.6;ctx.translate(bx,by);ctx.rotate(GroundhogView.pickupRotation(burst.actorId,faceToFace()));ctx.drawImage(images.coin,-s/2,-s/2-age*cellSize/1800,s,s);ctx.fillStyle='#ffe88d';ctx.font=`bold ${cellSize*.35}px sans-serif`;ctx.textAlign='center';ctx.fillText('+1',0,-cellSize*.5-age*cellSize/1800);}
+    else if(burst.kind==='reveal'){ctx.strokeStyle='#d4ad7a';ctx.lineWidth=2;const radius=cellSize*(.18+age/1600);for(let i=0;i<6;i++){const angle=i*Math.PI/3;ctx.beginPath();ctx.moveTo(bx+Math.cos(angle)*radius,by+Math.sin(angle)*radius);ctx.lineTo(bx+Math.cos(angle)*(radius+cellSize*.1),by+Math.sin(angle)*(radius+cellSize*.1));ctx.stroke();}}
     else if(burst.kind==='bomb'){ctx.strokeStyle='#ffce8d';ctx.lineWidth=3;ctx.beginPath();ctx.arc(bx,by,cellSize*(.2+age/650),0,Math.PI*2);ctx.stroke();}
     else if(burst.kind==='rock-broken'&&ready(images['rock-4']))ctx.drawImage(images['rock-4'],bx-cellSize*.45,by-cellSize*.45,cellSize*.9,cellSize*.9);
     ctx.restore();}else burst=null;}

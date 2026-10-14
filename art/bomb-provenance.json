@@ -1,0 +1,12 @@
+{
+  "art_source": "host_image",
+  "route": "built-in image_gen",
+  "native_alpha": true,
+  "source_size": [
+    1254,
+    1254
+  ],
+  "processing": "uniform resize to 128x128",
+  "model": "not returned by tool",
+  "estimateUsd": null
+}

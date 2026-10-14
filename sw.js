@@ -1,5 +1,5 @@
 /* Bump VERSION whenever any cached runtime file changes. */
-const VERSION='pwa-v3';
+const VERSION='pwa-v4';
 const PREFIX='groundhog-game:'+self.registration.scope+':';
 const CACHE=PREFIX+VERSION;
 const FILES=[
@@ -20,6 +20,7 @@ const FILES=[
   "assets/blue-sad.png",
   "assets/blue-up.png",
   "assets/coin.png",
+  "assets/bomb.png",
   "assets/floor.png",
   "assets/green-down.png",
   "assets/green-happy.png",
